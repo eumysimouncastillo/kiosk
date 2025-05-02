@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Eumy Kiosk</title>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-pink-100 font-sans">
+    <div class="flex h-screen">
+        <div class="w-1/12 bg-pink-300 p-4 overflow-y-auto">
+            <h2 class="text-white text-xl font-bold mb-4">Menu Categories</h2>
+            <ul id="categoryList" class="grid grid-cols-1 gap-4">
+                <li>
+                    <button class="category-btn bg-white w-full aspect-square rounded flex flex-col items-center justify-center p-2" data-category="all">
+                        <img src="https://ginzagyu.com/cdn/shop/products/wagyu-steak-bowl-ginza-gyu_503x503.jpg?v=1609673392" alt="All" class="w-full h-20 object-cover rounded mb-2 menu-item-image">
+                        <span class="text-sm">All</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="category-btn bg-white w-full aspect-square rounded flex flex-col items-center justify-center p-2" data-category="starters">
+                        <img src="https://miro.medium.com/v2/resize:fit:1400/1*iVPeZcRbuuFJuNfwiULc4Q.jpeg" alt="Starters" class="w-full h-20 object-cover rounded mb-2 menu-item-image">
+                        <span class="text-sm">Starters</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="category-btn bg-white w-full aspect-square rounded flex flex-col items-center justify-center p-2" data-category="specialty">
+                        <img src="https://twobakeboys.com/cdn/shop/files/twobakeboys_0022_616d78d4-5bfa-4f04-98ee-2b3ed1deed6d.jpg?v=1688703225&width=1445" alt="Specialty" class="w-full h-20 object-cover rounded mb-2 menu-item-image">
+                        <span class="text-sm">Specialty</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="category-btn bg-white w-full aspect-square rounded flex flex-col items-center justify-center p-2" data-category="salads">
+                        <img src="https://res.cloudinary.com/aaco/image/upload/v1685074967/Scott_Pickett_-_Wagyu_Sirloin_with_Black_Garlic_mgdmky.jpg" alt="Salads" class="w-full h-20 object-cover rounded mb-2 menu-item-image">
+                        <span class="text-sm">Salads</span>
+                    </button>
+                </li>
+            </ul>
+
+        </div>
+
+        <div class="w-7/12 p-4 overflow-y-auto" id="menuSection">
+            <h2 class="text-pink-800 text-2xl font-bold mb-4">Menu</h2>
+            <div id="menuItems" class="grid grid-cols-4 gap-4"></div>
+        </div>
+
+        <div class="w-4/12 bg-pink-200 p-4 flex flex-col">
+            <h2 class="text-pink-900 text-xl font-bold mb-4">Your Cart</h2>
+            <ul id="cartItems" class="flex-1 space-y-2 overflow-y-auto"></ul>
+            <div class="mt-4">
+                <p class="text-lg font-semibold">Total: ₱<span id="cartTotal">0</span></p>
+                <button id="checkoutBtn" class="mt-2 w-full bg-pink-600 text-white py-2 rounded">Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-10 rounded-xl shadow-2xl text-lg">
+            <h2 class="text-xl font-bold mb-4">Confirm Order</h2>
+            <p class="mb-4">Are you sure you want to place this order?</p>
+            <div class="flex justify-end space-x-4">
+                <button id="cancelOrderBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded">Cancel</button>
+                <button id="confirmOrderBtn" class="bg-pink-500 text-white px-4 py-2 rounded">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="receiptModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto text-lg">
+            <h2 class="text-2xl font-bold mb-4">Receipt</h2>
+            <ul id="receiptContent" class="mb-4 space-y-1"></ul>
+            <p class="font-semibold mb-4">Total: ₱<span id="receiptTotal">0</span></p>
+            <button id="closeReceipt" class="bg-pink-500 text-white px-4 py-2 rounded w-full">Close</button>
+        </div>
+    </div>
+    <script>
+        const items = [
+            { id: 1, name: "Miso Truffle Soup", category: "starters", price: 220, img: "https://naturallynidhi.com/wp-content/uploads/2022/01/Mushroom-Miso-Ramen-Cover.jpg" },
+            { id: 2, name: "Tuna Tataki on Lotus Crisp", category: "starters", price: 320, img: "https://miro.medium.com/v2/resize:fit:1400/1*iVPeZcRbuuFJuNfwiULc4Q.jpeg" },
+            { id: 3, name: "Ginger Soy Chicken Skewers", category: "starters", price: 280, img: "https://bakingthegoods.com/wp-content/uploads/2020/06/Ginger-Honey-Lime-Chicken-Skewers-8-683x1024.jpg" },
+            { id: 4, name: "Matcha Lava Cake", category: "specialty", price: 280, img: "https://recipecontent.fooby.ch/13863_3-2_1560-1040.jpg" },
+            { id: 5, name: "Mango Panna Cotta", category: "specialty", price: 240, img: "https://www.garnishwithlemon.com/wp-content/uploads/2022/03/Mango-Panna-Cotta-featured-image.jpg" },
+            { id: 6, name: "Lychee Rose Mille Crêpe", category: "specialty", price: 320, img: "https://twobakeboys.com/cdn/shop/files/twobakeboys_0022_616d78d4-5bfa-4f04-98ee-2b3ed1deed6d.jpg?v=1688703225&width=1445" },
+            { id: 7, name: "Salmon Teriyaki à la ChiYumi", category: "salads", price: 580, img: "https://www.chichilicious.com/wp-content/uploads/Salmon-teriyaki-recipe.jpg" },
+            { id: 8, name: "Black Garlic Wagyu Bowl", category: "salads", price: 720, img: "https://res.cloudinary.com/aaco/image/upload/v1685074967/Scott_Pickett_-_Wagyu_Sirloin_with_Black_Garlic_mgdmky.jpg" },
+            { id: 9, name: "Yuzu Cream Pasta", category: "salads", price: 460, img: "https://plantbasedmatters.net/wp-content/uploads/2021/11/Yuzu-Kosho-Pasta-Vegan.jpeg" }
+        ];
+
+        let cart = [];
+
+        function renderMenu(category = "all") {
+            const filtered = category === "all" ? items : items.filter(i => i.category === category);
+            $("#menuItems").empty();
+            filtered.forEach(item => {
+                $("#menuItems").append(`
+                    <div class="bg-white p-3 rounded shadow aspect-square flex flex-col justify-between">
+                        <img src="${item.img}" class="w-full h-24 object-cover rounded mb-2 menu-item-image" />
+                        <h3 class="text-center font-semibold">${item.name}</h3>
+                        <p class="text-center text-pink-600">₱${item.price}</p>
+                        <button class="add-to-cart bg-pink-500 text-white mt-2 py-1 rounded" data-id="${item.id}">Add to Cart</button>
+                    </div>
+                `);
+            });
+        }
+
+        function renderCart() {
+            $("#cartItems").empty();
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price * item.qty;
+                $("#cartItems").append(`
+                    <li class="bg-white p-2 rounded shadow flex items-center justify-between">
+                        <img src="${item.img}" class="w-10 h-10 rounded mr-2" />
+                        <div class="flex-1">
+                            <p class="text-sm">${item.name}</p>
+                            <div class="flex items-center space-x-1 mt-1">
+                                <button class="decrease text-xs bg-gray-300 px-2 rounded" data-id="${item.id}">−</button>
+                                <span class="text-sm">${item.qty}</span>
+                                <button class="increase text-xs bg-gray-300 px-2 rounded" data-id="${item.id}">+</button>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm">₱${item.price * item.qty}</p>
+                            <button class="remove-item text-red-500 text-xs mt-1" data-id="${item.id}">×</button>
+                        </div>
+                    </li>
+                `);
+            });
+            $("#cartTotal").text(total);
+        }
+
+        $(document).ready(function () {
+            renderMenu();
+
+            $(".category-btn").click(function () {
+                renderMenu($(this).data("category"));
+            });
+
+            $(document).on("click", ".add-to-cart", function () {
+                const id = $(this).data("id");
+                const item = items.find(i => i.id === id);
+                const inCart = cart.find(i => i.id === id);
+                if (inCart) {
+                    inCart.qty++;
+                } else {
+                    cart.push({ ...item, qty: 1 });
+                }
+                renderCart();
+            });
+
+            $(document).on("click", ".increase", function () {
+                const id = $(this).data("id");
+                const item = cart.find(i => i.id === id);
+                if (item) item.qty++;
+                renderCart();
+            });
+
+            $(document).on("click", ".decrease", function () {
+                const id = $(this).data("id");
+                const item = cart.find(i => i.id === id);
+                if (item && item.qty > 1) {
+                    item.qty--;
+                }
+                renderCart();
+            });
+
+            $(document).on("click", ".remove-item", function () {
+                const id = $(this).data("id");
+                cart = cart.filter(i => i.id !== id);
+                renderCart();
+            });
+
+            $("#checkoutBtn").click(function () {
+                if (cart.length === 0) {
+                    alert("Cart is empty.");
+                    return;
+                }
+                $("#confirmModal").removeClass("hidden"); // Show the confirmation modal
+            });
+
+            $("#cancelOrderBtn").click(function() {
+                $("#confirmModal").addClass("hidden"); // Hide the confirmation modal
+            });
+
+            $("#confirmOrderBtn").click(function() {
+                $("#confirmModal").addClass("hidden"); // Hide the confirmation modal
+                // Proceed to show the receipt
+                let total = 0;
+                $("#receiptContent").empty();
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.qty;
+                    total += itemTotal;
+                    $("#receiptContent").append(`<li>${item.name} x ${item.qty} = ₱${itemTotal}</li>`);
+                });
+                $("#receiptTotal").text(total);
+                $("#receiptModal").removeClass("hidden");
+                cart = []; // Clear the cart after showing the receipt
+                renderCart();
+            });
+
+            $("#closeReceipt").click(function () {
+                $("#receiptModal").addClass("hidden");
+            });
+        });
+    </script>
+</body>
+</html>
